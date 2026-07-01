@@ -140,7 +140,13 @@ window.addEventListener('load', () => {
 
   // تنظيف المعرف من البريفكس
   memberId = memberId.replace('PROTON-EGYPT:', '').replace('PROTON-EGYPT-OFFICIAL:', '');
-  verifyMember(memberId);
+    if (memberId) {
+    if (window._protonAuthReady) {
+      window._protonAuthReady.then(function() { verifyMember(memberId); });
+    } else {
+      verifyMember(memberId);
+    }
+  }
 });
 
 window.manualVerify = function() {
