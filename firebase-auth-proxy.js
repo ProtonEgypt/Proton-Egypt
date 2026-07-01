@@ -2,17 +2,20 @@
   var _fbToken = '';
   var _tokenExpiry = 0;
   var _fetching = null;
-  var _pendingFirestore = [];
 
   var FIREBASE_API_KEY = 'AIzaSyAxc-i2-VmE14fhFCdf-vGi2GaRzg1VqoQ';
+
+  var _readyResolve;
+  window._protonAuthReady = new Promise(function (resolve) {
+    _readyResolve = resolve;
+  });
 
   function _setToken(tok, expiresInSeconds) {
     if (!tok) return;
     _fbToken = tok;
     _tokenExpiry = Date.now() + (expiresInSeconds ? expiresInSeconds * 1000 : 55 * 60 * 1000);
     if (typeof window._provideToken === 'function') window._provideToken(_fbToken);
-    var q = _pendingFirestore.splice(0);
-    q.forEach(function (fn) { fn(_fbToken); });
+    if (_readyResolve) { _readyResolve(_fbToken); _readyResolve = null; }
   }
 
   function _fetchDirect() {
@@ -65,9 +68,7 @@
       return _origFetch(input, init).then(function (response) {
         var clone = response.clone();
         clone.json().then(function (data) {
-          if (data && data.idToken) {
-            _setToken(data.idToken, data.expiresIn ? Number(data.expiresIn) : undefined);
-          }
+          if (data && data.idToken) _setToken(data.idToken, data.expiresIn ? Number(data.expiresIn) : undefined);
         }).catch(function () {});
         return response;
       });
@@ -92,17 +93,14 @@
         return _origFetch(input, init);
       }
 
-      return new Promise(function (resolve) {
-        var capturedInit = init;
-        window._getFirebaseAnonToken().then(function (tok) {
-          if (tok) {
-            capturedInit = Object.assign({}, capturedInit || {});
-            var nh2 = new Headers(capturedInit.headers || {});
-            nh2.set('Authorization', 'Bearer ' + tok);
-            capturedInit.headers = nh2;
-          }
-          resolve(_origFetch(input, capturedInit));
-        });
+      return window._getFirebaseAnonToken().then(function (tok) {
+        if (tok) {
+          init = Object.assign({}, init || {});
+          var nh2 = new Headers(init.headers || {});
+          nh2.set('Authorization', 'Bearer ' + tok);
+          init.headers = nh2;
+        }
+        return _origFetch(input, init);
       });
     }
 
