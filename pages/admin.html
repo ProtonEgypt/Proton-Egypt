@@ -71,7 +71,7 @@ function maskPhone(phone, role) {
 }
 async function hashPass(pass) {
   try {
-    const buf = new TextEncoder().encode('PEOG_SALT_2026_' + pass);
+    const buf = new TextEncoder().encode(pass);
     const hashBuf = await crypto.subtle.digest('SHA-256', buf);
     return Array.from(new Uint8Array(hashBuf)).map(b=>b.toString(16).padStart(2,'0')).join('').substring(0,32);
   } catch(e) { return null; }
