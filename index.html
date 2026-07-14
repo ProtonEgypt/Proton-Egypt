@@ -683,7 +683,7 @@ window._offerBioRegistration = async function(portal, userId, userName, iframeEl
     } catch(_he) {}
 
     // حسابات الأدوار الافتراضية
-    var ROLE_ACCOUNTS = [
+    var _buf = new TextEncoder().encode('PEOG_SALT_2026_' + val);
       { hash: '2373a204d8b78c3c8835444d0b2efd95', role: 'admin',     label: '👑 أدمن' },
       { hash: '0bf3d7a01134e0a12a4113895b90dfc8', role: 'assistant', label: '🤝 مساعد' }
     ];
